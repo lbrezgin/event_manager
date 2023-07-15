@@ -1,6 +1,7 @@
 require 'csv'
 require 'google/apis/civicinfo_v2'
 require 'erb'
+require 'date'
 
 def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5, '0')[0..4]
@@ -15,6 +16,10 @@ def clean_phone(phone)
   else
     'Unfortunately, you have entered the wrong number, so we will not be able to contact you :(('
   end
+end
+
+def time_targeting(date_time)
+  date_time.group_by {|date| DateTime.strptime(date, '%m/%d/%Y %H:%M').hour }.max_by {|k,v| v.size}[0]
 end
 
 def legislators_by_zipcode(zip)
@@ -53,6 +58,8 @@ contents = CSV.open(
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
 
+time_array = []
+
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
@@ -60,6 +67,9 @@ contents.each do |row|
   legislators = legislators_by_zipcode(zipcode)
   phone = clean_phone(row[:homephone])
   form_letter = erb_template.result(binding)
+  time_array.push(row[:regdate])
 
   save_thank_you_letter(id, form_letter)
 end
+
+puts "Most popular hour for registration are: #{time_targeting(time_array)} o'clock"
