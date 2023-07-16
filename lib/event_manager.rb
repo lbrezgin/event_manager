@@ -22,6 +22,12 @@ def time_targeting(date_time)
   date_time.group_by {|date| DateTime.strptime(date, '%m/%d/%Y %H:%M').hour }.max_by {|k,v| v.size}[0]
 end
 
+def day_targeting(date_day)
+  dates = date_day.map { |date_str| DateTime.strptime(date_str, '%m/%d/%y %H:%M') }
+  day_counts = dates.group_by { |date| date.strftime('%A') }.max_by { |day, dates| dates.size }[0]
+end
+
+
 def legislators_by_zipcode(zip)
   civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
   civic_info.key = 'AIzaSyClRzDqDh5MsXwnCWi0kOiiBivP6JsSyBw'
@@ -73,3 +79,4 @@ contents.each do |row|
 end
 
 puts "Most popular hour for registration are: #{time_targeting(time_array)} o'clock"
+puts "Most popular day for registration are: #{day_targeting(time_array)}"
